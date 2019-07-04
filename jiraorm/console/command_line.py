@@ -34,8 +34,8 @@ def main():
                 if args.operation != operation.Connect:
                     l.warning("Operation %s not implemented" % str(args.operation))
 
-            if output != None and args.out != None:
-                with open(args.output) as f:
+            if output != None and args.output != None:
+                with open(args.output,"w") as f:
                     return f.write(output)
 
         except Exception as e:
@@ -61,12 +61,39 @@ def operation_connect(l:logger, args):
 def operation_select(l:logger, args, c:JSWContainer):
     if args.query != None:
         issuesExt = c.getJIRA().search_issues_nolim(args.query)
-        l.msg("Retreived %d issues" % issuesExt.count())
+        l.msg("Retreived %d issues" % len(issuesExt))
+
+        if args.output != None:
+            fields = args.fields if args.fields != None else ['id', 'summary']
+            return issues2json(issuesExt,fields)
     else:
         raise Exception("No query has been specified")
 
+def issues2json(issues, fields):
+    jsonString = "[\n"
 
+    for issue in issues:
+        jsonString += "\t" + issue2json(issue,fields) + ",\n"
 
+    jsonString += "]\n"
+    return jsonString
+
+def issue2json(issue, fields):
+    jsString = "{"
+
+    for f in fields:
+        if issue.hasField(f):
+            jsString += '%s:"%s",' % (escape_string(f), escape_string(issue.getFieldAsString(f)))
+        else:
+            print('Field %s not found' % f)
+
+    jsString += "}"
+
+    return jsString
+
+def escape_string(raw):
+    s = str(raw)
+    return s.translate(s.maketrans({'"':  r'\"'}))
 
 
 
@@ -108,6 +135,8 @@ def init_arguments():
                                   help='Store log output to file')
     operations_group.add_argument('-q', '--query', required=False,
                                   help='Initial query to get issues to process (if applicable)')
+    operations_group.add_argument('-f', '--fields', required=False,
+                                  help='comma separated fields list to process (if applicable)')
     operations_group.add_argument('-out', '--output', required=False,
                                   help='Store output of operation to file')
 
@@ -118,5 +147,7 @@ def parse_arguments(parser: argparse.ArgumentParser):
     args = parser.parse_args()
 
     args.operation = operation[args.operation]
+    if args.fields != None:
+        args.fields = args.fields.rstrip(",").split(",")
 
     return args
