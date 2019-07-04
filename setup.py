@@ -15,7 +15,10 @@ setup(
     license='MIT', #TBD
     packages=['jiraorm'],
     install_requires=['jira'],
-    #dependency_links=['http://server/user/repo/tarball/master#egg=package-1.0']
+    #dependency_links=['http://server/user/repo/tarball/master#egg=package-1.0'],
+    entry_points = {
+        'console_scripts':['jiraorm-main=jiraorm.console.command_line:main']
+    },
     include_package_data=True,
     test_suite='nose.collector',
     tests_require=['nose'],
