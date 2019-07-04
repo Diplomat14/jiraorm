@@ -39,7 +39,7 @@ def main():
                     return f.write(output)
 
         except Exception as e:
-            l.error("Exception happened during operation processing" + str(e))
+            l.error("Exception happened during operation processing: " + str(e))
 
     except Exception as e:
         l.error("Exception on commandline arguments parsing: " + str(e))
