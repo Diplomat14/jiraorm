@@ -45,7 +45,7 @@ class JSWContainer (object):
         self.__connectionConfig = iConnectionCfg
         self.__securityConfig = iSecurityCfg
 
-        self.__creatorFromServer = JSWContainerCreatorFromServer(self.__logger, self)
+        self.__creatorFromServer = JSWContainerCreatorFromServer(self.__logger, self.__securityConfig, self.__connectionConfig, self)
         self.__creatorFromOriginal = JSWContainerCreatorFromOriginal(self.__logger, self)
 
     @property
