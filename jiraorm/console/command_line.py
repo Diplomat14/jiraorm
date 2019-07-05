@@ -151,3 +151,7 @@ def parse_arguments(parser: argparse.ArgumentParser):
         args.fields = args.fields.rstrip(",").split(",")
 
     return args
+
+
+if __name__ == "__main__":
+    main()
