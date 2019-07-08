@@ -7,6 +7,13 @@ import argparse
 from xdev.core.logger import logger
 
 
+# Typical command line requests
+# Check connection
+# command_line.py -s "https://DOMAIN.atlassian.net" -u "USER@MAIL" -at "TOKEN" -log ".\working\jiraorm\log.txt" -op "Connect"
+# Select items
+# command_line.py -s "https://DOMAIN.atlassian.net" -u "MAIL" -at "TOKEN" -log ".\working\jiraorm\log.txt" -op "Select" -q "FILTER" -f "id,summary,assignee" -out ".\working\jiraorm\issues.json"
+
+
 def main():
     l = logger("CL")
     l.msg("JIRA ORM Command line tool started")
@@ -44,7 +51,7 @@ def main():
     except Exception as e:
         l.error("Exception on commandline arguments parsing: " + str(e))
 
-    l.msg("JIRA ORM Command line tool finished")
+    l.msg("Command line tool finished")
 
 
 def operation_connect(l:logger, args):
@@ -93,7 +100,9 @@ def issue2json(issue, fields):
 
 def escape_string(raw):
     s = str(raw)
-    return s.translate(s.maketrans({'"':  r'\"'}))
+    return s.translate(s.maketrans(
+        {'"':  r'\"'}
+    ))
 
 
 
@@ -111,6 +120,19 @@ class operation(Enum):
 def init_arguments():
     parser = argparse.ArgumentParser(description='JIRA ORM Command Line tool')
 
+    parser = init_common_arguments(parser)
+
+    operations_group = parser.add_argument_group('Script operations options')
+    ops = [op.name for op in list(operation)]
+    operations_group.add_argument('-op', '--operation', required=True,
+                                  help='Operation that is to be executed', choices=ops)
+    operations_group = init_common_operations_arguments(operations_group)
+
+    return parser
+
+def init_common_arguments(parser):
+    assert isinstance(parser, argparse.ArgumentParser), "Parser has to be of argparse.ArgumentParser type. Given: " + str(type(parser))
+
     jira_group = parser.add_argument_group('JIRA server connection options')
     jira_group.add_argument('-s', '--server', required=True,
                             help='The JIRA instance to connect to, including context path.')
@@ -127,20 +149,21 @@ def init_arguments():
     cache_group.add_argument('-cu', '--cache-use', required=False,
                              help='Use cache file as initial data.')
 
-    operations_group = parser.add_argument_group('Script operations options')
-    ops = [op.name for op in list(operation)]
-    operations_group.add_argument('-op', '--operation', required=True,
-                                  help='Operation that is to be executed', choices=ops)
-    operations_group.add_argument('-log', '--logoutput', required=False,
+    output_group = parser.add_argument_group('Script output options')
+    output_group.add_argument('-log', '--logoutput', required=False,
                                   help='Store log output to file')
+    output_group.add_argument('-out', '--output', required=False,
+                                  help='Store output of operation to file')
+
+    return parser
+
+
+def init_common_operations_arguments(operations_group):
     operations_group.add_argument('-q', '--query', required=False,
                                   help='Initial query to get issues to process (if applicable)')
     operations_group.add_argument('-f', '--fields', required=False,
                                   help='comma separated fields list to process (if applicable)')
-    operations_group.add_argument('-out', '--output', required=False,
-                                  help='Store output of operation to file')
-
-    return parser
+    return operations_group
 
 
 def parse_arguments(parser: argparse.ArgumentParser):
