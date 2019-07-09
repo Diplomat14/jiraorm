@@ -27,16 +27,16 @@ def main():
         try:
             l.msg("Operation %s" % str(args.operation))
 
-            c = None
+            container = None
             output = None
 
             # For most of operations we need connection to JIRA so coding it once
             if args.operation == operation.Connect or args.operation == operation.Select:
-                c = operation_connect(l, args)
+                container = operation_connect(l, args)
 
 
             if args.operation == operation.Select:
-                output = operation_select(l,args,c)
+                output = operation_select(l,args,container)
             else:
                 if args.operation != operation.Connect:
                     l.warning("Operation %s not implemented" % str(args.operation))
@@ -120,13 +120,13 @@ class operation(Enum):
 def init_arguments():
     parser = argparse.ArgumentParser(description='JIRA ORM Command Line tool')
 
-    parser = init_common_arguments(parser)
+    init_common_arguments(parser)
 
     operations_group = parser.add_argument_group('Script operations options')
     ops = [op.name for op in list(operation)]
     operations_group.add_argument('-op', '--operation', required=True,
                                   help='Operation that is to be executed', choices=ops)
-    operations_group = init_common_operations_arguments(operations_group)
+    init_common_operations_arguments(operations_group)
 
     return parser
 
@@ -136,11 +136,9 @@ def init_common_arguments(parser):
     jira_group = parser.add_argument_group('JIRA server connection options')
     jira_group.add_argument('-s', '--server', required=True,
                             help='The JIRA instance to connect to, including context path.')
-
-    apit_auth_group = parser.add_argument_group('APIToken auth options')
-    apit_auth_group.add_argument('-u', '--username', required=True,
+    jira_group.add_argument('-u', '--username', required=True,
                                  help='The username to connect to this JIRA instance with.')
-    apit_auth_group.add_argument('-at', '--access-token', required=True,
+    jira_group.add_argument('-at', '--access-token', required=True,
                                  help='API access token for the user (set it up at your user settings at id.atlassian.net).')
 
     cache_group = parser.add_argument_group('Local cache')
@@ -155,18 +153,15 @@ def init_common_arguments(parser):
     output_group.add_argument('-out', '--output', required=False,
                                   help='Store output of operation to file')
 
-    return parser
-
 
 def init_common_operations_arguments(operations_group):
     operations_group.add_argument('-q', '--query', required=False,
                                   help='Initial query to get issues to process (if applicable)')
     operations_group.add_argument('-f', '--fields', required=False,
                                   help='comma separated fields list to process (if applicable)')
-    return operations_group
 
 
-def parse_arguments(parser: argparse.ArgumentParser):
+def parse_arguments(parser):
     args = parser.parse_args()
 
     args.operation = operation[args.operation]
