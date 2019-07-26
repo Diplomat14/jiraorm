@@ -39,15 +39,18 @@ class JIRAExt(JIRA):
     def search_issues_nolim(self, jql_str, startAt=0, maxResults=50, validate_query=True, fields=None, expand=None,
                       json_result=None):
         jiraIssuesLimitation = 200
-        allIssues = super(JIRAExt,self).search_issues(jql_str, startAt, maxResults, validate_query, fields, True,json_result)
+        currentStartAt = startAt
+        allIssues = super(JIRAExt,self).search_issues(jql_str, currentStartAt, maxResults, validate_query, fields, True,json_result)
         issues = allIssues
-        
-        while (maxResults == None or len(allIssues) < maxResults) and (len(issues) == jiraIssuesLimitation):
-            issues = super(JIRAExt,self).search_issues(jql_str, startAt, maxResults, validate_query, fields, expand,json_result)
+
+        while (len(allIssues) < issues.total-startAt and len(allIssues) < maxResults) and len(issues) != 0:
+        #while (maxResults == None or len(allIssues) < maxResults) and (len(issues) == jiraIssuesLimitation):
+            currentStartAt = len(allIssues)
+            issues = super(JIRAExt,self).search_issues(jql_str, currentStartAt, maxResults, validate_query, fields, expand,json_result)
             if maxResults == None:
                 allIssues.append(issues)
             elif len(allIssues) + len(issues) <= maxResults:
-                allIssues.append(issues)
+                allIssues.extend(issues)
             else:
                 numtoAdd = len(allIssues) + len(issues) - maxResults
                 allIssues.append( issues[0..numtoAdd] )
