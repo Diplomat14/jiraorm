@@ -165,10 +165,13 @@ def parse_arguments(parser):
     args = parser.parse_args()
 
     args.operation = operation[args.operation]
-    if args.fields != None:
-        args.fields = args.fields.rstrip(",").split(",")
+    parse_common_operations_arguments(args)
 
     return args
+
+def parse_common_operations_arguments(args):
+    if args.fields != None:
+        args.fields = args.fields.rstrip(",").split(",")
 
 
 if __name__ == "__main__":
