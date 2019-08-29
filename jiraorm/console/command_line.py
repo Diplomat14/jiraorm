@@ -23,6 +23,8 @@ def main():
         args = parse_arguments(init_arguments())
         if args.logoutput != None:
             l.set_path(args.logoutput)
+        if args.debug != None:
+            l.set_debug(args.debug)
 
         try:
             l.msg("Operation %s" % str(args.operation))
@@ -46,10 +48,9 @@ def main():
                     return f.write(output)
 
         except Exception as e:
-            l.error("Exception happened during operation processing: " + str(e))
-
+            l.error("Exception happened during operation processing: " + str(e), e)
     except Exception as e:
-        l.error("Exception on commandline arguments parsing: " + str(e))
+        l.error("Exception on commandline arguments parsing: " + str(e), e)
 
     l.msg("Command line tool finished")
 
@@ -126,6 +127,8 @@ def init_arguments():
     ops = [op.name for op in list(operation)]
     operations_group.add_argument('-op', '--operation', required=True,
                                   help='Operation that is to be executed', choices=ops)
+    operations_group.add_argument('-dbg', '--debug', required=False,
+                                  help='Defines if debug mode is used for output', type=bool)
     init_common_operations_arguments(operations_group)
 
     return parser
