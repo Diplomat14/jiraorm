@@ -127,8 +127,6 @@ def init_arguments():
     ops = [op.name for op in list(operation)]
     operations_group.add_argument('-op', '--operation', required=True,
                                   help='Operation that is to be executed', choices=ops)
-    operations_group.add_argument('-dbg', '--debug', required=False,
-                                  help='Defines if debug mode is used for output', type=bool)
     init_common_operations_arguments(operations_group)
 
     return parser
@@ -158,6 +156,8 @@ def init_common_arguments(parser):
 
 
 def init_common_operations_arguments(operations_group):
+    operations_group.add_argument('-dbg', '--debug', required=False,
+                                  help='Defines if debug mode is used for output', type=bool)
     operations_group.add_argument('-q', '--query', required=False,
                                   help='Initial query to get issues to process (if applicable)')
     operations_group.add_argument('-f', '--fields', required=False,
