@@ -3,7 +3,7 @@ from .SprintExt import SprintExt
 
 class IssueExt(object):
     SPRINTFIELDNAME = "Sprint"
-    SPRINTFIELDID = "customfield_10113"
+    SPRINTFIELDID = ""
     
     __issue = None
     __container = None
@@ -11,6 +11,8 @@ class IssueExt(object):
     def __init__ ( self, original : Issue, container ):
         self.__issue = original
         self.__container = container
+        if IssueExt.SPRINTFIELDID == "":
+            IssueExt.SPRINTFIELDID = container.getJIRA().getFieldIDString(IssueExt.SPRINTFIELDNAME)
 
     @property
     def container(self):
@@ -64,11 +66,22 @@ class IssueExt(object):
             return self.original.id
         elif name == 'key':
             return self.original.key
+        elif name == 'sprints':
+            return self.getSprints()
+        elif name == 'sprint' or name == 'lastsprint':
+            return self.getLastSprint()
         else:
             if self.hasField(name):
                 return getattr(self.original.fields,name)
             else:
                 return None
+
+    def getCustomField(self,name:str):
+        fieldid = container.getJIRA().getFieldIDString(name)
+        if fieldid is not None and fieldid != "":
+            return self.getField(fieldid)
+        else:
+            return None
 
     def getFieldAsString(self, name:str):
         v = self.getField(name)
@@ -76,6 +89,8 @@ class IssueExt(object):
             return v
         elif hasattr(v,'name'):
             return v.name
+        elif v is None:
+            return ''
         else:
             return str(v)
 
