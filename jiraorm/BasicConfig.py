@@ -4,7 +4,7 @@ class SecurityConfig(object):
     __APIToken = ''
 
     def __init__( self, user : str, APIToken : str ):
-        if len(user) != 0 and len(APIToken) != 0:
+        if user is not None and len(user) != 0 and APIToken is not None and len(APIToken) != 0:
             self.__user = user
             self.__APIToken = APIToken
 
@@ -22,7 +22,7 @@ class ConnectionConfig(object):
     __serv = ''
 
     def __init__ ( self, serve : str ):
-        if len(serve) != 0:
+        if serve is not None and len(serve) != 0:
             self.__serv = serve
 
     @property

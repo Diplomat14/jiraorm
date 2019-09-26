@@ -29,13 +29,12 @@ def main():
         try:
             l.msg("Operation %s" % str(args.operation))
 
-            container = None
+            container = create_container(l,args)
             output = None
 
             # For most of operations we need connection to JIRA so coding it once
             if args.operation == operation.Connect or args.operation == operation.Select:
-                container = operation_connect(l, args)
-
+                container = operation_connect(l, container)
 
             if args.operation == operation.Select:
                 output = operation_select(l,args,container)
@@ -54,16 +53,18 @@ def main():
 
     l.msg("Command line tool finished")
 
-
-def operation_connect(l:logger, args):
+def create_container(l:logger, args):
     ccfg = ConnectionConfig(args.server)
     scfg = SecurityConfig(args.username, args.access_token)
 
     c = JSWContainer(l, ccfg, scfg)
-
-    c.getJIRA()
+    l.msg("JIRA Container created")
+    
+    return c
+    
+def operation_connect(l:logger, container):
+    container.getJIRA()
     l.msg("Successfully connected to JIRA")
-
     return c
 
 def operation_select(l:logger, args, c:JSWContainer):
@@ -135,11 +136,11 @@ def init_common_arguments(parser):
     assert isinstance(parser, argparse.ArgumentParser), "Parser has to be of argparse.ArgumentParser type. Given: " + str(type(parser))
 
     jira_group = parser.add_argument_group('JIRA server connection options')
-    jira_group.add_argument('-s', '--server', required=True,
+    jira_group.add_argument('-s', '--server', required=False,
                             help='The JIRA instance to connect to, including context path.')
-    jira_group.add_argument('-u', '--username', required=True,
+    jira_group.add_argument('-u', '--username', required=False,
                                  help='The username to connect to this JIRA instance with.')
-    jira_group.add_argument('-at', '--access-token', required=True,
+    jira_group.add_argument('-at', '--access-token', required=False,
                                  help='API access token for the user (set it up at your user settings at id.atlassian.net).')
 
     cache_group = parser.add_argument_group('Local cache')
