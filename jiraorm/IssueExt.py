@@ -70,6 +70,8 @@ class IssueExt(object):
             return self.getSprints()
         elif name == 'sprint' or name == 'lastsprint':
             return self.getLastSprint()
+        elif name == 'firstsprint':
+            return self.getFirstSprint()
         else:
             if self.hasField(name):
                 return getattr(self.original.fields,name)
@@ -117,4 +119,9 @@ class IssueExt(object):
     def getLastSprint(self):
         s = self.getSprints()
         return s[-1] if len(s) > 0 else None
+
+
+    def getFirstSprint(self):
+        s = self.getSprints()
+        return s[0] if len(s) > 0 else None
 
