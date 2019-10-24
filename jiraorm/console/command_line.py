@@ -65,7 +65,7 @@ def create_container(l:logger, args):
 def operation_connect(l:logger, container):
     container.getJIRA()
     l.msg("Successfully connected to JIRA")
-    return c
+    return container
 
 def operation_select(l:logger, args, c:JSWContainer):
     if args.query != None:
