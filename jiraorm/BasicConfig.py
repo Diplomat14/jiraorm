@@ -20,11 +20,18 @@ class SecurityConfig(object):
 class ConnectionConfig(object):
 
     __serv = ''
+    __options = ''
 
-    def __init__ ( self, serve : str ):
+    def __init__ ( self, serve : str, opt: str):
         if serve is not None and len(serve) != 0:
             self.__serv = serve
+        self.__options = opt
+
 
     @property
     def server(self):
         return self.__serv
+
+    @property
+    def options(self):
+        return self.__options

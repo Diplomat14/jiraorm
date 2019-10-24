@@ -54,7 +54,7 @@ def main():
     l.msg("Command line tool finished")
 
 def create_container(l:logger, args):
-    ccfg = ConnectionConfig(args.server)
+    ccfg = ConnectionConfig(args.server, args.options)
     scfg = SecurityConfig(args.username, args.access_token)
 
     c = JSWContainer(l, ccfg, scfg)
@@ -138,6 +138,8 @@ def init_common_arguments(parser):
     jira_group = parser.add_argument_group('JIRA server connection options')
     jira_group.add_argument('-s', '--server', required=False,
                             help='The JIRA instance to connect to, including context path.')
+    jira_group.add_argument('-opt', '--options', required=False,
+                            help='Additional options to connect to the Jira instance')
     jira_group.add_argument('-u', '--username', required=False,
                                  help='The username to connect to this JIRA instance with.')
     jira_group.add_argument('-at', '--access-token', required=False,

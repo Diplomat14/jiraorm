@@ -14,6 +14,8 @@ from jira.resources import Issue
 from jira.resources import Sprint
 from jira.resources import Board
 
+import ast
+
 class JSWContainer (object):
 
     # Utility classes
@@ -183,11 +185,15 @@ class JSWContainerCreatorFromServer:
     def __createJIRAFromServer(self, securityConfig, connectionConfig):
         assert isinstance(securityConfig, SecurityConfig), "id shall be of type int"
         assert isinstance(connectionConfig, ConnectionConfig), "id shall be of type int"
+        options = {'agile_rest_path': GreenHopperResource.AGILE_BASE_REST_PATH}
+        if connectionConfig.options:
+            options.update(ast.literal_eval(connectionConfig.options))
+
         return JIRAExt(
             self.__container,
             basic_auth=(securityConfig.user, securityConfig.APIToken),
             server=connectionConfig.server,
-            options={'agile_rest_path': GreenHopperResource.AGILE_BASE_REST_PATH})
+            options=options)
 
     def createSprintFromServer(self,id):
         assert isinstance(id, int), "id shall be of type int"
