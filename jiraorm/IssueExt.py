@@ -61,24 +61,27 @@ class IssueExt(object):
 
     def getField(self, name:str):
 
-        if name == 'sprints':
-            return self.getSprints()
-        elif name == 'sprint' or name == 'lastsprint':
-            return self.getLastSprint()
-        elif name == 'firstsprint':
-            return self.getFirstSprint()
-        else:
-            if name in ['changelog','id','key']:
-                id = name
+        if name != None:
+            if name == 'sprints':
+                return self.getSprints()
+            elif name == 'sprint' or name == 'lastsprint':
+                return self.getLastSprint()
+            elif name == 'firstsprint':
+                return self.getFirstSprint()
             else:
-                id = self.__container.getJIRA().getFieldIDString(name)
+                if name in ['changelog','id','key']:
+                    id = name
+                else:
+                    id = self.__container.getJIRA().getFieldIDString(name)
 
-            if hasattr(self.original,id):
-                return getattr(self.original,id)
-            if hasattr(self.original.fields,id):
-                return getattr(self.original.fields,id)
-            else:
-                return None
+                if hasattr(self.original,id):
+                    return getattr(self.original,id)
+                if hasattr(self.original.fields,id):
+                    return getattr(self.original.fields,id)
+                else:
+                    return None
+        else:
+            return None
 
     def hasCustomField(self,name:str):
         id = self.__container.getJIRA().getFieldIDString(name)

@@ -70,4 +70,4 @@ class JIRAExt(JIRA):
         id = self.getFieldID(field_name)
         #if id is not None:
         #    id = "%s%d" % ("customfield_",id)
-        return id
+        return id if id != None else field_name
