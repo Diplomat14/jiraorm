@@ -120,7 +120,7 @@ class operation(Enum):
     Select = 2 # Select certain JIRA issues
 
 def init_arguments():
-    parser = argparse.ArgumentParser(description='JIRA ORM Command Line tool')
+    parser = argparse.ArgumentParser(description='JIRA ORM Command Line tool', fromfile_prefix_chars='@')
 
     init_common_arguments(parser)
 
