@@ -14,6 +14,8 @@ from jira.resources import Issue
 from jira.resources import Sprint
 from jira.resources import Board
 
+import ast
+
 class JSWContainer (object):
 
     # Utility classes
@@ -29,7 +31,8 @@ class JSWContainer (object):
 
     # Dynamic data
     __jiraExt = None
-    __issuesExt = {}
+    __issuesExtId = {}
+    __issuesExtKey = {}
     __sprintsExt = {}
     __boardsExt = {}
 
@@ -73,9 +76,11 @@ class JSWContainer (object):
         else:
             assert hasattr(original,'id'), "original shall have id attribute"
             id = int(original.id)
-            if id not in self.__issuesExt:
-                self.__issuesExt[id] = self.__creatorFromOriginal.createIssueFromOriginal(original)
-            return self.__issuesExt[id]
+            key = original.key
+            if id not in self.__issuesExtId:
+                self.__issuesExtId[id] = self.__creatorFromOriginal.createIssueFromOriginal(original)
+                self.__issuesExtKey[key] = self.__creatorFromOriginal.createIssueFromOriginal(original)
+            return self.__issuesExtId[id]
 
     def getIssuesFromOriginals(self,originals):
         assert isinstance(originals, Iterable), "originals shall be a list"
@@ -85,6 +90,22 @@ class JSWContainer (object):
         for o in originals:
             issues.append(self.getIssueFromOriginal(o))
         return issues
+
+    def getIssueByKey(self, key, fields=None, expand=None):
+        assert isinstance(key, str), "id shall be a string"
+
+        if key not in self.__issuesExtKey:
+            issue = self.__creatorFromServer.createIssueFromServer(key,fields,expand)
+            self.getIssueFromOriginal(issue)  # self.__issuesExt[id] = <<< will be done inside getSprintFromOriginal
+        return self.__issuesExtKey[key]
+
+    def getIssueById(self, id, fields=None, expand=None):
+        assert isinstance(id, str), "id shall be a string"
+
+        if id not in self.__issuesExtId:
+            issue = self.__creatorFromServer.createIssueFromServer(id,fields,expand)
+            self.getIssueFromOriginal(issue)  # self.__issuesExt[id] = <<< will be done inside getSprintFromOriginal
+        return self.__issuesExtId[id]
 
     def getSprintFromOriginal(self, original:Sprint):
         if not original:
@@ -164,15 +185,23 @@ class JSWContainerCreatorFromServer:
     def __createJIRAFromServer(self, securityConfig, connectionConfig):
         assert isinstance(securityConfig, SecurityConfig), "id shall be of type int"
         assert isinstance(connectionConfig, ConnectionConfig), "id shall be of type int"
+        options = {'agile_rest_path': GreenHopperResource.AGILE_BASE_REST_PATH}
+        if connectionConfig.options:
+            options.update(ast.literal_eval(connectionConfig.options))
+
         return JIRAExt(
             self.__container,
             basic_auth=(securityConfig.user, securityConfig.APIToken),
             server=connectionConfig.server,
-            options={'agile_rest_path': GreenHopperResource.AGILE_BASE_REST_PATH})
+            options=options)
 
     def createSprintFromServer(self,id):
         assert isinstance(id, int), "id shall be of type int"
         return self.getJIRA().sprint(id)
+
+    def createIssueFromServer(self,id, fields=None, expand=None):
+        assert isinstance(id, str), "id shall be of type string"
+        return self.getJIRA().issue(id,fields,expand)
 
     def createBoardFromServer(self, iId, iName):
         assert isinstance(iId, int), "id shall be of type int"

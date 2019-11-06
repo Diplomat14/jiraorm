@@ -58,12 +58,16 @@ class JIRAExt(JIRA):
         return self.__container.getIssuesFromOriginals(allIssues)
 
     def getFieldID(self,field_name):
-        field_id = [f['schema']['customId'] for f in self.fields()
-                           if f['name'] == field_name][0]
-        return field_id
+        #field_id = [f['schema']['customId'] for f in self.fields()
+        #                   if f['name'] == field_name][0]
+        if field_name in self._fields.keys():
+            return self._fields[field_name]
+        else:
+            return None
+        #return field_id
 
     def getFieldIDString(self, field_name):
         id = self.getFieldID(field_name)
-        if id is not None:
-            id = "%s%d" % ("customfield_",id)
-        return id
+        #if id is not None:
+        #    id = "%s%d" % ("customfield_",id)
+        return id if id != None else field_name

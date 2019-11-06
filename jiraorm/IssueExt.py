@@ -1,5 +1,6 @@
 from jira.resources import Issue
 from .SprintExt import SprintExt
+from datetime import datetime
 
 class IssueExt(object):
     SPRINTFIELDNAME = "Sprint"
@@ -22,8 +23,8 @@ class IssueExt(object):
     def original(self):
         return self.__issue
 
-    def reloadFromServer(self):
-        newI = self.__container.getJIRA().issue(self.__issue.id)
+    def reloadFromServer(self, fields=None, expand=None):
+        newI = self.__container.getJIRA().issue(self.__issue.id,fields=fields,expand=expand)
         if newI:
             self.__issue = newI
             return True
@@ -56,28 +57,38 @@ class IssueExt(object):
         return children
 
     def hasField(self, name:str):
-        if ( name == 'id' or name == 'key'):
-            return True
-        else:
-            return hasattr(self.original.fields,name)
+        return hasattr(self.original,name) or hasattr(self.original.fields,name) or self.hasCustomField(name)
 
     def getField(self, name:str):
-        if name == 'id':
-            return self.original.id
-        elif name == 'key':
-            return self.original.key
-        elif name == 'sprints':
-            return self.getSprints()
-        elif name == 'sprint' or name == 'lastsprint':
-            return self.getLastSprint()
-        else:
-            if self.hasField(name):
-                return getattr(self.original.fields,name)
+
+        if name != None:
+            if name == 'sprints':
+                return self.getSprints()
+            elif name == 'sprint' or name == 'lastsprint':
+                return self.getLastSprint()
+            elif name == 'firstsprint':
+                return self.getFirstSprint()
             else:
-                return None
+                if name in ['changelog','id','key']:
+                    id = name
+                else:
+                    id = self.__container.getJIRA().getFieldIDString(name)
+
+                if hasattr(self.original,id):
+                    return getattr(self.original,id)
+                if hasattr(self.original.fields,id):
+                    return getattr(self.original.fields,id)
+                else:
+                    return None
+        else:
+            return None
+
+    def hasCustomField(self,name:str):
+        id = self.__container.getJIRA().getFieldIDString(name)
+        return id != None and id != name
 
     def getCustomField(self,name:str):
-        fieldid = container.getJIRA().getFieldIDString(name)
+        fieldid = self.__container.getJIRA().getFieldIDString(name)
         if fieldid is not None and fieldid != "":
             return self.getField(fieldid)
         else:
@@ -118,3 +129,41 @@ class IssueExt(object):
         s = self.getSprints()
         return s[-1] if len(s) > 0 else None
 
+
+    def getFirstSprint(self):
+        s = self.getSprints()
+        return s[0] if len(s) > 0 else None
+
+    def getChangelog(self,expand = False):
+        if not self.hasField('changelog') and expand == True:
+            self.reloadFromServer(expand='changelog')
+
+        if self.hasField('changelog'):
+            return self.getField('changelog')
+        else:
+            return None
+
+    def getFieldUpdatesAsDT(self,name:str, useIssueCreated = True, expand = False):
+        d = self.getFieldUpdated(name,useIssueCreated,expand)
+        if d != None:
+            dt = datetime.strptime(d,'%Y-%m-%dT%H:%M:%S.%f%z')
+            return dt
+        else:
+            return None
+
+    def getFieldUpdated(self,name:str, useIssueCreated = True, expand = False):
+        cl = self.getChangelog(expand)
+        defaultUpdated = None
+        if useIssueCreated == True:
+            defaultUpdated = self.getField('created')
+
+        if cl != None:
+            #assert isinstance(cl,jira.resources.PropertyHolder)
+            updated = defaultUpdated
+            for h in reversed(cl.histories):
+                for i in h.items:
+                    if i.field == name:
+                        updated = h.created
+            return updated
+        else:
+            return defaultUpdated
