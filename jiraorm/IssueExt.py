@@ -4,7 +4,7 @@ from datetime import datetime
 
 class IssueExt(object):
     SPRINTFIELDNAME = "Sprint"
-    SPRINTFIELDID = ""
+    SPRINTFIELDID = {}
     
     __issue = None
     __container = None
@@ -12,8 +12,8 @@ class IssueExt(object):
     def __init__ ( self, original : Issue, container ):
         self.__issue = original
         self.__container = container
-        if IssueExt.SPRINTFIELDID == "":
-            IssueExt.SPRINTFIELDID = container.getJIRA().getFieldIDString(IssueExt.SPRINTFIELDNAME)
+        if container not in IssueExt.SPRINTFIELDID.keys():
+            IssueExt.SPRINTFIELDID[container] = container.getJIRA().getFieldIDString(IssueExt.SPRINTFIELDNAME)
 
     @property
     def container(self):
@@ -113,7 +113,7 @@ class IssueExt(object):
         return True if hasattr(field, 'data') else False
 
     def getSprints(self):
-        sprints = self.getField(self.SPRINTFIELDID)
+        sprints = self.getField(IssueExt.SPRINTFIELDID[self.__container])
         sprintsExt = []
         if type(sprints) == str:
             sext = SprintExt.getSprintFromRawStringWithId(sprints,self.__container)
