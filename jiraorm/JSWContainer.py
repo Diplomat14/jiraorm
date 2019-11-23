@@ -15,6 +15,7 @@ from jira.resources import Sprint
 from jira.resources import Board
 
 import ast
+from datetime import datetime
 
 class JSWContainer (object):
 
@@ -70,25 +71,29 @@ class JSWContainer (object):
     def getJIRA(self):
         return self.__creatorFromServer.getJIRA()
 
-    def getIssueFromOriginal(self, original:Issue):
+    def getIssueFromOriginal(self, original:Issue, date):
         if not original:
             return None
         else:
             assert hasattr(original,'id'), "original shall have id attribute"
             id = int(original.id)
             key = original.key
-            if id not in self.__issuesExtId:
-                self.__issuesExtId[id] = self.__creatorFromOriginal.createIssueFromOriginal(original)
-                self.__issuesExtKey[key] = self.__creatorFromOriginal.createIssueFromOriginal(original)
-            return self.__issuesExtId[id]
+            created = original.fields.created
+            if not date or datetime.strptime(created,'%Y-%m-%dT%H:%M:%S.%f%z').date() < datetime.strptime(date, '%Y-%m-%d').date():
+                if id not in self.__issuesExtId:
+                    self.__issuesExtId[id] = self.__creatorFromOriginal.createIssueFromOriginal(original)
+                    self.__issuesExtKey[key] = self.__creatorFromOriginal.createIssueFromOriginal(original)
+                return self.__issuesExtId[id]
 
-    def getIssuesFromOriginals(self,originals):
+    def getIssuesFromOriginals(self,originals, date):
         assert isinstance(originals, Iterable), "originals shall be a list"
         issues = []
         for o in originals:
             assert isinstance(o, Issue), "original items shall be of type " + str(type(Issue))
         for o in originals:
-            issues.append(self.getIssueFromOriginal(o))
+            issue = self.getIssueFromOriginal(o, date)
+            if issue:
+                issues.append(issue)
         return issues
 
     def getIssueByKey(self, key, fields=None, expand=None):

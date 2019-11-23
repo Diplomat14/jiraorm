@@ -37,7 +37,7 @@ class JIRAExt(JIRA):
         return json.loads(r)
 
     def search_issues_nolim(self, jql_str, startAt=0, maxResults=50, validate_query=True, fields=None, expand=None,
-                      json_result=None):
+                      json_result=None,date=None):
         jiraIssuesLimitation = 200
         currentStartAt = startAt
         allIssues = super(JIRAExt,self).search_issues(jql_str, currentStartAt, maxResults, validate_query, fields, True,json_result)
@@ -55,7 +55,7 @@ class JIRAExt(JIRA):
                 numtoAdd = len(allIssues) + len(issues) - maxResults
                 allIssues.append( issues[0..numtoAdd] )
 
-        return self.__container.getIssuesFromOriginals(allIssues)
+        return self.__container.getIssuesFromOriginals(allIssues, date)
 
     def getFieldID(self,field_name):
         #field_id = [f['schema']['customId'] for f in self.fields()
