@@ -51,6 +51,7 @@ class JSWContainer (object):
 
         self.__creatorFromServer = JSWContainerCreatorFromServer(self.__logger, self.__securityConfig, self.__connectionConfig, self)
         self.__creatorFromOriginal = JSWContainerCreatorFromOriginal(self.__logger, self)
+        self.__allsprints = self.__creatorFromServer.getJIRA().sprints(24)
 
     @property
     def _creatorFromOriginal(self):
@@ -79,6 +80,7 @@ class JSWContainer (object):
             id = int(original.id)
             key = original.key
             created = original.fields.created
+            original = self.updateIssueByDate(original, date) if date else original
             if not date or datetime.strptime(created,'%Y-%m-%dT%H:%M:%S.%f%z').date() < datetime.strptime(date, '%Y-%m-%d').date():
                 if id not in self.__issuesExtId:
                     self.__issuesExtId[id] = self.__creatorFromOriginal.createIssueFromOriginal(original)
@@ -95,6 +97,57 @@ class JSWContainer (object):
             if issue:
                 issues.append(issue)
         return issues
+
+    def updateIssueByDate(self, original, date):
+        dct = self.getIssueHistoryDate(original, date)
+
+        for i in dct.keys():
+            val = [i for i in dct[i].values()][0]
+            if hasattr(original, i):
+                setattr(original, i, val)
+            elif hasattr(original.fields, i):
+                allowed_values_list = self.getAllowedValuesList(original, i)
+                if allowed_values_list:
+                    for j in allowed_values_list:
+                        if hasattr(j, 'value'):
+                            if val == getattr(j, 'value'):
+                                setattr(original.fields, i, j)
+                else:
+                    # TODO sprints list update, not only value
+                    if val is not None:
+                        if i == 'customfield_10113':
+                            val = getattr(self.__allsprints, val) if hasattr(self.__allsprints, val) else None
+                        else:
+                            val = float(val) if val.isdigit() else val
+                    setattr(original.fields, i, val)
+
+        return original
+
+
+    def getAllowedValuesList(self, issue, field):
+        if hasattr(issue.editmeta.fields, field):
+            field_to_found = getattr(issue.editmeta.fields, field)
+            if hasattr(field_to_found, "allowedValues"):
+                return getattr(field_to_found, "allowedValues")
+
+
+    def getIssueHistoryDate(self, original, date):
+        dct = {}
+        cl = getattr(original, 'changelog')
+        updated = [x for x in cl.histories if
+                   datetime.strptime(x.created, '%Y-%m-%dT%H:%M:%S.%f%z').date() > datetime.strptime(date,
+                                                                                                 '%Y-%m-%d').date()]
+        if updated:
+            for x in updated:
+                for y in x.items:
+                    check = y.fieldId if hasattr(y, 'fieldId') else y.field.lower()
+                    if check not in dct:
+                        dct[check] = {x.created: y.fromString}
+                    d = [s for x, y in dct.items() for s in y.keys()][0]
+                    if check in dct and d > x.created:
+                        dct[check] = {x.created: y.fromString}
+
+        return dct
 
     def getIssueByKey(self, key, fields=None, expand=None):
         assert isinstance(key, str), "id shall be a string"

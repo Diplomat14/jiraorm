@@ -40,7 +40,7 @@ class JIRAExt(JIRA):
                       json_result=None,date=None):
         jiraIssuesLimitation = 200
         currentStartAt = startAt
-        allIssues = super(JIRAExt,self).search_issues(jql_str, currentStartAt, maxResults, validate_query, fields, True,json_result)
+        allIssues = super(JIRAExt,self).search_issues(jql_str, currentStartAt, maxResults, validate_query, fields, expand, json_result)
         issues = allIssues
 
         while (len(allIssues) < issues.total-startAt and len(allIssues) < maxResults) and len(issues) != 0:
