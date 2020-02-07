@@ -108,6 +108,9 @@ class IssueExt(object):
     def setField(self, field:str, value):
         self.original.update({field:value})
 
+    def setFields(self, dict):
+        self.original.update(dict)
+
     def isCustomFieldSet(self,fieldName: str):
         field = getattr(self.__issue.fields, fieldName)
         return True if hasattr(field, 'data') else False

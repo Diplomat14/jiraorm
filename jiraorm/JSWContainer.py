@@ -70,6 +70,12 @@ class JSWContainer (object):
     def getJIRA(self):
         return self.__creatorFromServer.getJIRA()
 
+    def addIssue(self, fields):
+        return self.getJIRA().create_issue(fields)
+
+    def addIssueLink(self, type, inward, outward):
+        return self.getJIRA().create_issue_link(type, inward, outward)
+
     def getIssueFromOriginal(self, original:Issue):
         if not original:
             return None
