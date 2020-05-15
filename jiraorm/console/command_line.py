@@ -1,14 +1,9 @@
-import jiraorm
-from jiraorm.BasicConfig import ConnectionConfig
-from jiraorm.BasicConfig import SecurityConfig
 from jiraorm.JSWContainer import JSWContainer
+from jiraautomation.automationcore import automationcore
 
 import argparse
 from xdev.core.logger import logger
 
-import json
-import requests
-import ast
 
 # Typical command line requests
 # Check connection
@@ -32,7 +27,7 @@ def main():
         try:
             l.msg("Operation %s" % str(args.operation))
 
-            container = create_container(l,args)
+            container = create_jira_container(args, l)
             output = None
 
             # For most of operations we need connection to JIRA so coding it once
@@ -56,41 +51,13 @@ def main():
 
     l.msg("Command line tool finished")
 
-def get_cookies(l:logger, args):
-    session = requests.Session()
+def create_jira_container(l, args):
+    op = 'InitJira'
+    op_class = automationcore.get_operation_class(op)
+    op_instance = op_class(l)
+    container = op_instance.execute(args)
+    return container
 
-    data = {'username': args.username, 'password': args.access_token}
-    opt = ast.literal_eval(args.options)
-    if 'client_cert' not in opt:
-        l.error("No certificate data provided")
-    if 'server' not in opt:
-        l.error("No login url provided")
-
-    client_cert, server = opt.get('client_cert'), opt.get('server')
-    response = session.post(server, data=data, cert=client_cert)
-    if response.status_code != 200:
-        l.error("Connection with certificate failed")
-
-    cookies = dict(response.cookies.items())
-    if not len(cookies) > 0:
-        l.error("No cookies were generated")
-    else:
-        opt.update({'cookies': cookies})
-        l.msg('Cookies were generated')
-
-    return json.dumps(opt)
-
-
-def create_container(l:logger, args):
-    options = get_cookies(l, args) if args.options else None
-    ccfg = ConnectionConfig(args.server, options)
-    scfg = SecurityConfig(args.username, args.access_token)
-
-    c = JSWContainer(l, ccfg, scfg)
-    l.msg("JIRA Container created")
-    
-    return c
-    
 def operation_connect(l:logger, container):
     container.getJIRA()
     l.msg("Successfully connected to JIRA")
@@ -134,11 +101,6 @@ def escape_string(raw):
     return s.translate(s.maketrans(
         {'"':  r'\"'}
     ))
-
-
-
-
-
 
 
 from enum import Enum, unique
