@@ -15,7 +15,10 @@ setup(
     author_email='diplomt@gmail.com',
     license='MIT', #TBD
     packages=['jiraorm'],
-    install_requires=['jira','xdev'],
+    install_requires=[
+        'jira',
+        'xdev @ git+ssh://git@github.com/Diplomat14/xdev'
+        ],
     #dependency_links=['http://server/user/repo/tarball/master#egg=package-1.0'],
     entry_points = {
         'console_scripts':['jiraorm-main=jiraorm.console.command_line:main']
