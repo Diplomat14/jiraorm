@@ -1,7 +1,5 @@
-import jiraorm
-from jiraorm.BasicConfig import ConnectionConfig
-from jiraorm.BasicConfig import SecurityConfig
 from jiraorm.JSWContainer import JSWContainer
+from jiraautomation.automationcore import automationcore
 
 import argparse
 from xdev.core.logger import logger
@@ -29,7 +27,7 @@ def main():
         try:
             l.msg("Operation %s" % str(args.operation))
 
-            container = create_container(l,args)
+            container = create_jira_container(args, l)
             output = None
 
             # For most of operations we need connection to JIRA so coding it once
@@ -53,15 +51,13 @@ def main():
 
     l.msg("Command line tool finished")
 
-def create_container(l:logger, args):
-    ccfg = ConnectionConfig(args.server, args.options)
-    scfg = SecurityConfig(args.username, args.access_token)
+def create_jira_container(l, args):
+    op = 'InitJira'
+    op_class = automationcore.get_operation_class(op)
+    op_instance = op_class(l)
+    container = op_instance.execute(args)
+    return container
 
-    c = JSWContainer(l, ccfg, scfg)
-    l.msg("JIRA Container created")
-    
-    return c
-    
 def operation_connect(l:logger, container):
     container.getJIRA()
     l.msg("Successfully connected to JIRA")
@@ -105,11 +101,6 @@ def escape_string(raw):
     return s.translate(s.maketrans(
         {'"':  r'\"'}
     ))
-
-
-
-
-
 
 
 from enum import Enum, unique

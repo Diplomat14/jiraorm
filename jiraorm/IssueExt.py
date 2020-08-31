@@ -108,6 +108,9 @@ class IssueExt(object):
     def setField(self, field:str, value):
         self.original.update({field:value})
 
+    def setFields(self, dict):
+        self.original.update(dict)
+
     def isCustomFieldSet(self,fieldName: str):
         field = getattr(self.__issue.fields, fieldName)
         return True if hasattr(field, 'data') else False
@@ -129,10 +132,22 @@ class IssueExt(object):
         s = self.getSprints()
         return s[-1] if len(s) > 0 else None
 
-
     def getFirstSprint(self):
         s = self.getSprints()
         return s[0] if len(s) > 0 else None
+
+    def getAllowedValues(self, expand=False):
+        if expand and not self.hasField('editmeta'):
+            self.reloadFromServer(expand='editmeta')
+
+        allowedValues = dict()
+        if self.hasField('editmeta'):
+            for f, v in self.getField('editmeta').fields.__dict__.items():
+                if hasattr(v, 'allowedValues'):
+                    allowedValues.update({f: v.allowedValues})
+            return allowedValues
+        else:
+            return None
 
     def getChangelog(self,expand = False):
         if not self.hasField('changelog') and expand == True:
