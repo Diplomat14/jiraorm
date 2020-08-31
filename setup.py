@@ -17,7 +17,7 @@ setup(
     packages=['jiraorm'],
     install_requires=[
         'jira',
-        'xdev @ git+ssh://git@github.com/Diplomat14/xdev'
+        'xdev @ git+ssh://git@github.com/Diplomat14/xdev.git'
         ],
     #dependency_links=['http://server/user/repo/tarball/master#egg=package-1.0'],
     entry_points = {
