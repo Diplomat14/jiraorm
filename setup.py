@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 import os
 
 def readme():
@@ -14,7 +14,7 @@ setup(
     author='Aleksey Denysyuk',
     author_email='diplomt@gmail.com',
     license='MIT', #TBD
-    packages=['jiraorm'],
+    packages=find_packages(),
     install_requires=[
         'jira',
         'xdev @ git+http://git@github.com/Diplomat14/xdev.git'
